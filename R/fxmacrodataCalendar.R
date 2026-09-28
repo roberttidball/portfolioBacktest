@@ -7,8 +7,9 @@
 #' @param limit Maximum number of events to request.
 #' @param min_tier Optional market-tier filter. Use \code{1} for top-tier
 #'   events, \code{2} for medium-or-higher impact, or \code{NULL} for all rows.
-#' @param api_key Optional FXMacroData API key. Defaults to the
-#'   \code{FXMACRODATA_API_KEY} environment variable.
+#' @param api_key Optional FXMacroData API key, sent in the \code{X-API-Key}
+#'   request header. Defaults to the \code{FXMACRODATA_API_KEY} environment
+#'   variable.
 #' @param base_url FXMacroData REST API base URL.
 #'
 #' @return An \code{xts} object indexed by release date with market tier and
@@ -20,18 +21,18 @@ fxmacrodataCalendar <- function(currency = "usd",
                                 api_key = Sys.getenv("FXMACRODATA_API_KEY"),
                                 base_url = "https://api.fxmacrodata.com/v1") {
   limit <- max(1L, min(as.integer(limit), 100L))
-  params <- paste0("?limit=", limit)
-  if (nzchar(api_key))
-    params <- paste0(params, "&api_key=", utils::URLencode(api_key, reserved = TRUE))
-
-  url <- paste0(
+  request_url <- paste0(
     sub("/$", "", base_url),
     "/calendar/",
     tolower(currency),
-    params
+    "?limit=", limit
   )
+  headers <- if (nzchar(api_key)) c("X-API-Key" = api_key) else NULL
 
-  payload <- jsonlite::fromJSON(url)
+  con <- url(request_url, headers = headers)
+  on.exit(close(con))
+  body <- readLines(con, warn = FALSE, encoding = "UTF-8")
+  payload <- jsonlite::fromJSON(paste(body, collapse = "\n"))
   events <- payload$data
   if (is.null(events) || NROW(events) == 0L)
     return(xts::xts())

@@ -11,8 +11,9 @@ fxmacrodataCalendar(currency = "usd", limit = 100, min_tier = 2,
   \item{limit}{Maximum number of events to request.}
   \item{min_tier}{Optional market-tier filter. Use \code{1} for top-tier
   events, \code{2} for medium-or-higher impact, or \code{NULL} for all rows.}
-  \item{api_key}{Optional FXMacroData API key. Defaults to the
-  \code{FXMACRODATA_API_KEY} environment variable.}
+  \item{api_key}{Optional FXMacroData API key, sent in the \code{X-API-Key}
+  request header. Defaults to the \code{FXMACRODATA_API_KEY} environment
+  variable.}
   \item{base_url}{FXMacroData REST API base URL.}
 }
 \description{
